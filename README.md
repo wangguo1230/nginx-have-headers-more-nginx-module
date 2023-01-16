@@ -13,3 +13,9 @@ docker login --username=zerowgd
 ``` shell
 docker push zerowgd/nginx:1.22.1-alpine  
 ```
+
+3. 构建多平台
+
+``` shell
+docker buildx build -t  zerowgd/nginx:1.22.1-alpine --platform linux/arm64,linux/amd64   . --push
+```

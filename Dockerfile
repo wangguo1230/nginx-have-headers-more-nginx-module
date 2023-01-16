@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:experimental
 # https://github.com/RookieZoe/docker-images
-FROM  nginx:1.22.1-alpine AS builder
+FROM  --platform=$TARGETPLATFORM nginx:1.22.1-alpine AS builder
 
 ARG NGINX_VERSION=1.22.1
 ARG HEADERS_MORE_VERSION=0.34
@@ -49,7 +49,7 @@ RUN tar -xzf $NGINX_PATH/$NGINX_COMPRESS_NAME --strip-components 1 -C $NGINX_PAT
   --add-dynamic-module=$HEADERS_MORE_PATH && \
   make && make install
 
-FROM  nginx:1.22.1-alpine
+FROM --platform=$TARGETPLATFORM  nginx:1.22.1-alpine
 ARG NGINX_VERSION
 ARG HEADERS_MORE_VERSION
 ENV NGINX_VERSION=$NGINX_VERSION
