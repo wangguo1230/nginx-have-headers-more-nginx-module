@@ -1,10 +1,10 @@
 # syntax = docker/dockerfile:experimental
 # https://github.com/RookieZoe/docker-images
-FROM  --platform=$TARGETPLATFORM nginx:1.22.1-alpine AS builder
+FROM  --platform=$TARGETPLATFORM nginx:1.24.0-alpine AS builder
 
-ARG NGINX_VERSION=1.22.1
+ARG NGINX_VERSION=1.24.0
 ARG HEADERS_MORE_VERSION=0.34
-ARG NGINX_SOURCE=package/nginx-1.22.1.tar.gz
+ARG NGINX_SOURCE=package/nginx-1.24.0.tar.gz
 
 ARG HEADERS_MORE_SOURCE=package/headers-more-nginx-module-0.34.tar.gz
 
@@ -12,7 +12,7 @@ ENV NGINX_PATH=/usr/src/nginx
 ENV HEADERS_MORE_PATH=/usr/src/headers-more-nginx-module
 ENV NGINX_VERSION=$NGINX_VERSION
 ENV HEADERS_MORE_VERSION=$HEADERS_MORE_VERSION
-ENV NGINX_COMPRESS_NAME=nginx-1.22.1.tar.gz
+ENV NGINX_COMPRESS_NAME=nginx-1.24.0.tar.gz
 ENV HEADERS_MORE_COMPRESS_NAME=headers-more-nginx-module-0.34.tar.gz
 
 COPY $NGINX_SOURCE $NGINX_PATH/$NGINX_COMPRESS_NAME
@@ -49,7 +49,7 @@ RUN tar -xzf $NGINX_PATH/$NGINX_COMPRESS_NAME --strip-components 1 -C $NGINX_PAT
   --add-dynamic-module=$HEADERS_MORE_PATH && \
   make && make install
 
-FROM --platform=$TARGETPLATFORM  nginx:1.22.1-alpine
+FROM --platform=$TARGETPLATFORM  nginx:1.24.0-alpine
 ARG NGINX_VERSION
 ARG HEADERS_MORE_VERSION
 ENV NGINX_VERSION=$NGINX_VERSION
