@@ -1,23 +1,30 @@
 # syntax = docker/dockerfile:experimental
 # https://github.com/RookieZoe/docker-images
-FROM  --platform=$TARGETPLATFORM nginx:1.24.0-alpine AS builder
+FROM  --platform=$TARGETPLATFORM nginx:1.28.1-alpine AS builder
 
-ARG NGINX_VERSION=1.24.0
-ARG HEADERS_MORE_VERSION=0.34
-ARG NGINX_SOURCE=package/nginx-1.24.0.tar.gz
-
-ARG HEADERS_MORE_SOURCE=package/headers-more-nginx-module-0.34.tar.gz
+ARG NGINX_VERSION=1.28.1
+ARG HEADERS_MORE_VERSION=0.39
 
 ENV NGINX_PATH=/usr/src/nginx
 ENV HEADERS_MORE_PATH=/usr/src/headers-more-nginx-module
 ENV NGINX_VERSION=$NGINX_VERSION
 ENV HEADERS_MORE_VERSION=$HEADERS_MORE_VERSION
-ENV NGINX_COMPRESS_NAME=nginx-1.24.0.tar.gz
-ENV HEADERS_MORE_COMPRESS_NAME=headers-more-nginx-module-0.34.tar.gz
+ENV NGINX_COMPRESS_NAME=nginx-${NGINX_VERSION}.tar.gz
+ENV HEADERS_MORE_COMPRESS_NAME=headers-more-nginx-module-${HEADERS_MORE_VERSION}.tar.gz
 
-COPY $NGINX_SOURCE $NGINX_PATH/$NGINX_COMPRESS_NAME
-COPY $HEADERS_MORE_SOURCE $HEADERS_MORE_PATH/$HEADERS_MORE_COMPRESS_NAME
+# 创建源码目录
+RUN mkdir -p $NGINX_PATH $HEADERS_MORE_PATH
 
+# 下载 nginx 和 headers-more-nginx-module 源码
+RUN wget -O $NGINX_PATH/$NGINX_COMPRESS_NAME https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && \
+    wget -O $HEADERS_MORE_PATH/$HEADERS_MORE_COMPRESS_NAME https://github.com/openresty/headers-more-nginx-module/archive/v${HEADERS_MORE_VERSION}.tar.gz
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+
+ENV http_proxy=$http_proxy \
+    https_proxy=$https_proxy \
+    no_proxy=$no_proxy
 # For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
 RUN apk add --no-cache --virtual .build-deps \
   gcc \
@@ -40,16 +47,14 @@ RUN apk add --no-cache --virtual .build-deps \
 RUN tar -xzf $NGINX_PATH/$NGINX_COMPRESS_NAME --strip-components 1 -C $NGINX_PATH && \
   tar -xzf $HEADERS_MORE_PATH/${HEADERS_MORE_COMPRESS_NAME} --strip-components 1 -C $HEADERS_MORE_PATH && \
   rm $NGINX_PATH/$NGINX_COMPRESS_NAME $HEADERS_MORE_PATH/$HEADERS_MORE_COMPRESS_NAME && \
-  CONFARGS=$(nginx -V 2>&1 | sed -n -e 's/^.*arguments: //p') && \
-  CONFARGS=${CONFARGS/-Os -fomit-frame-pointer -g/-Os} && \
-  cd $NGINX_PATH && \
-  CFLAGS=${CFLAGS:-} && \
-  CFLAGS="$CFLAGS -Wno-error" ./configure \
-  --with-compat $CONFARGS \
-  --add-dynamic-module=$HEADERS_MORE_PATH && \
+  CONFARGS="$(nginx -V 2>&1 | sed -n -e 's/^.*arguments: //p')" && \
+  CONFARGS="${CONFARGS/-Os -fomit-frame-pointer -g/-Os}" && \
+  cd "$NGINX_PATH" && \
+  CFLAGS="${CFLAGS:-} -Wno-error" && \
+  eval "./configure --with-compat $CONFARGS --add-dynamic-module=$HEADERS_MORE_PATH" && \
   make && make install
 
-FROM --platform=$TARGETPLATFORM  nginx:1.24.0-alpine
+FROM --platform=$TARGETPLATFORM  nginx:1.28.1-alpine
 ARG NGINX_VERSION
 ARG HEADERS_MORE_VERSION
 ENV NGINX_VERSION=$NGINX_VERSION

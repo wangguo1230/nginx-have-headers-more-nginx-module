@@ -1,7 +1,8 @@
 # 带有nginx-headers-more的nginx镜像
 
 ## 构建镜像
-docker build -t  zerowgd/nginx:1.24.0-alpine  .
+docker build --build-arg http_proxy=http://host.docker.internal:10808 --build-arg https_proxy=http://host.docker.internal:10808 --build-arg no_proxy=localhost,127.0.0.1 -t zerowgd/nginx:1.28.1-alpine .
+
 
 ## 推送镜像
 以docker hub为例：
@@ -11,15 +12,15 @@ docker login --username=zerowgd
 ```
 2. 推送镜像
 ``` shell
-docker push zerowgd/nginx:1.24.0-alpine  
+docker push zerowgd/nginx:1.28.1-alpine  
 ```
 
 3. 构建多平台
 
 ``` shell
-docker buildx build -t  zerowgd/nginx:1.24.0-alpine --platform linux/arm64/v8,linux/amd64   . --push
+docker buildx build -t  zerowgd/nginx:1.28.1-alpine --platform linux/arm64/v8,linux/amd64   . --push
 ```
 
 ``` shell
-docker build --platform=linux/arm64 -t zerowgd/nginx:1.24.0-alpine-arm64 .  
+docker build --platform=linux/arm64 -t zerowgd/nginx:1.28.1-alpine-arm64 .  
 ```
